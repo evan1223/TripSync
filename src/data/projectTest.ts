@@ -1,0 +1,48 @@
+import projectImage from "@/public/project/project-image.jpg";
+export const projects = [
+  {
+    id: "1",
+    imageSrc: projectImage,
+    category: ["前端"],
+    title: "北捷黑克鬆",
+    description: "急徵!已有後端+PM，歡迎加入~~",
+    dateRange: "2025.4.1 - 2025.4.22",
+    owner: "王小明",
+  },
+  {
+    id: "2",
+    imageSrc: projectImage,
+    category: ["前端"],
+    title: "北捷黑克鬆",
+    description: "急徵!已有後端+PM，歡迎加入~~",
+    dateRange: "2025.4.1 - 2025.4.22",
+    owner: "王小明",
+  },
+  {
+    id: "3",
+    imageSrc: projectImage,
+    category: ["UIUX", "平面設計"],
+    title: "文化祭展覽",
+    description: "歡迎各路設計師一起腦爆",
+    dateRange: "2025.4.10 - 2025.5.5",
+    owner: "李小華",
+  },
+  {
+    id: "4",
+    imageSrc: projectImage,
+    category: ["UIUX", "平面設計"],
+    title: "文化祭展覽",
+    description: "歡迎各路設計師一起腦爆",
+    dateRange: "2025.4.10 - 2025.5.5",
+    owner: "李小華",
+  },
+  {
+    id: "5",
+    imageSrc: projectImage,
+    category: ["UIUX", "平面設計"],
+    title: "文化祭展覽",
+    description: "歡迎各路設計師一起腦爆",
+    dateRange: "2025.4.10 - 2025.5.5",
+    owner: "李小華",
+  },
+];

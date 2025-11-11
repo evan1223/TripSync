@@ -1,0 +1,8 @@
+[
+  { "category": "team", "status_name": "active" },
+  { "category": "team", "status_name": "full" },
+  { "category": "application", "status_name": "waiting" },
+  { "category": "application", "status_name": "accepted" },
+  { "category": "application", "status_name": "rejected" }
+]
+

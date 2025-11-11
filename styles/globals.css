@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+input:-webkit-autofill {
+  transition: background-color 9999s ease-in-out 0s;
+  -webkit-text-fill-color: #000 !important;
+}
+/* 修正首頁 google 自動帶入輸入框顏色問題 */
+input.error:-webkit-autofill {
+  box-shadow: 0 0 0 1000px #fee2e2 inset !important; /* Tailwind 的 bg-red-100 */
+  -webkit-text-fill-color: #000 !important;
+}
