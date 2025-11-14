@@ -4,15 +4,14 @@ import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCLfYjV9dfKOalCwBISsROQz_zgs9M65Dg",
-  authDomain: "software-project-a060c.firebaseapp.com",
-  projectId: "software-project-a060c",
-  storageBucket: "software-project-a060c.firebasestorage.app",
-  messagingSenderId: "163710286863",
-  appId: "1:163710286863:web:c68c9c05fe96e87d54f77a",
-  measurementId: "G-2F00Q3B6MQ"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
 };
-
 // Debug: Log the configuration (temporarily)
 // console.log('Firebase Config:', {
 //   apiKey: firebaseConfig.apiKey ? 'exists' : 'missing',
