@@ -46,7 +46,7 @@ export default function AddProjects() {
     const [imageUrl, setImageUrl] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [isClosed, setIsClosed] = useState(false); 
-    const DEFAULT_PICTURE_URL = "https://firebasestorage.googleapis.com/v0/b/software-project-a060c.firebasestorage.app/o/projects%2Fproject_defualt.png?alt=media&token=8e36a8a8-d15f-4595-b785-25cfbaa70869";
+    const DEFAULT_PICTURE_URL = "https://firebasestorage.googleapis.com/v0/b/saad-5ae18.firebasestorage.app/o/projects%2Fprojects%252Fproject_defualt.png?alt=media&token=79f1fcf5-b960-404e-8b03-dc5bf13e729c";
 
     useEffect(() => {
         const loadProjectData = async () => {
