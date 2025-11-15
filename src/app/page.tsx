@@ -1,6 +1,10 @@
+"use client";
 import ProjectList from "@/components/Project/ProjectList";
+import Link from "next/link";
 import { Search } from "lucide-react";
 import { Divider } from "@heroui/divider";
+import { Button } from "@heroui/react";
+import { AddProjectIcon } from "@/components/icons";
 
 export default function Home() {
   return (
@@ -31,8 +35,32 @@ export default function Home() {
       {/* 首頁主要內容 */}
       <div className="w-full min-h-screen flex flex-col rounded-2xl bg-gray-4 justify-center overflow-y pb-5">
         <div className="grid justify-center mx-5">
-          <div className="mt-8 text-primary-blue1 text-xl pb-4 font-bold">
+          {/* <div className="mt-8 text-primary-blue1 text-xl pb-4 font-bold">
             <h2>專案列表</h2>
+            <Divider className="my-2" />
+          </div> */}
+          <div className="mt-8 text-primary-blue1 text-xl pb-4 font-bold">
+            {/* 標題 + 按鈕區塊 */}
+            <div className="flex items-center justify-between">
+              <h2>專案列表</h2>
+
+              {/* 發起計畫按鈕 */}
+              {/* <Link href="/myproject/new">
+                <button className="bg-primary-blue2 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-blue1 transition">
+                  發起計畫
+                </button>
+              </Link> */}
+              {/* 新增專案按鈕 須連結至下一頁 */}
+                <div className="flex  justify-end">
+                  <Link href={"/myproject/new"}>
+                    <Button className="bg-primary-blue2 text-white">
+                      <AddProjectIcon />
+                      發起計畫
+                    </Button>
+                  </Link>
+                </div>
+            </div>
+
             <Divider className="my-2" />
           </div>
 

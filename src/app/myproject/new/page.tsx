@@ -47,6 +47,7 @@ export default function AddProjects() {
   const router = useRouter();
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [isLogIn, setIsLogIn] = useState<boolean | null>(null);
 
   // 圖片
   const [imageUrl, setImageUrl] = useState<string>("");
@@ -67,41 +68,44 @@ export default function AddProjects() {
     email: "",
   });
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("tempUploadedImageUrl");
-    }
-    async function fetchSession() {
+    async function loadSession() {
       try {
-        // 檢查使用者登入狀態
-        const sessionRes = await fetch("/api/session");
-        const sessionData = await sessionRes.json();
+        const res = await fetch("/api/session");
+        const sessionData = await res.json();
+
         if (!sessionData.loggedIn) {
-          alert("請先登入");
-          window.location.href = "/login";
+          setAlertMessage("請先登入");
+          setShowAlert(true);
           return;
         }
+
+        // ✔ 設定登入狀態
+        setIsLogIn(true);
+
+        // ✔ 設定使用者資訊
         setUserInfo({
           name: sessionData.name || "沒有填寫姓名",
           email: sessionData.email || "沒有填寫信箱",
         });
 
-        const tempUrl =
-          typeof window !== "undefined"
-            ? localStorage.getItem("tempUploadedImageUrl")
-            : null;
-        if (tempUrl) {
-          setImageUrl(tempUrl);
-        }
+        // ✔ 拿回臨時圖片
+        const tempUrl = localStorage.getItem("tempUploadedImageUrl");
+        if (tempUrl) setImageUrl(tempUrl);
+
       } catch (err) {
         console.error("載入 session 時發生錯誤", err);
-        setUserInfo({ name: "錯誤", email: "錯誤" });
+        setAlertMessage("載入登入狀態時發生錯誤");
+        setShowAlert(true);
       }
     }
-    fetchSession();
+
+    loadSession();
   }, []);
+
 
   const handleConfirm = () => {
     setShowAlert(false);
+    router.replace("/login");
   };
   // 預覽：show localStorage
   const handlePreview = () => {
