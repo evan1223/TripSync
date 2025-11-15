@@ -40,7 +40,7 @@ export default function ProjectList() {
     return () => unsubscribe();
   }, []);
 
-  // 判斷發起人是否有專案，大於0顯示卡片樣式，若數量為0，顯示文字
+  // 判斷發起人是否有計畫，大於0顯示卡片樣式，若數量為0，顯示文字
   const hasProjects = launchProjects && launchProjects.length > 0;
 
   return (
@@ -50,10 +50,10 @@ export default function ProjectList() {
           <Loading />
         </div>
       ) : hasProjects ? (
-        //發起人擁有的專案數量卡片
+        //發起人擁有的計畫數量卡片
         <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-12 mt-4">
           {launchProjects.map((project: any, index) => (
-            //Link 連結指向發起專案進度頁，範本看/myproject/progress
+            //Link 連結指向發起計畫進度頁，範本看/myproject/progress
             <Link
               href={`/myproject/progress/${project.id}`}
               key={project.id || index}
@@ -72,9 +72,9 @@ export default function ProjectList() {
           ))}
         </div>
       ) : (
-        //尚未發起專案時顯示
+        //尚未發起計畫時顯示
         <div className="text-center text-gray-2 mt-48">
-          <h3>您目前未發起任何專案</h3>
+          <h3>您目前未發起任何計畫</h3>
         </div>
       )}
     </div>

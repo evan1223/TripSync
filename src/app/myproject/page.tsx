@@ -65,11 +65,11 @@ export default function MyProjectPage() {
                 cursor: "hidden",
               }}
             >
-              {/* 發起專案 Tab */}
-              <Tab key="initiate" title={<h3>發起專案</h3>}>
+              {/* 發起計畫 Tab */}
+              <Tab key="initiate" title={<h3>發起計畫</h3>}>
                 <Divider className="my-4 w-full" />
 
-                {/* 新增專案按鈕 須連結至下一頁 */}
+                {/* 新增計畫按鈕 須連結至下一頁 */}
                 <div className="flex  justify-end">
                   <Link href={"/myproject/new"}>
                     <Button className="bg-primary-blue2 text-white">
@@ -82,9 +82,9 @@ export default function MyProjectPage() {
                 {/* 主要畫面呈現 */}
                 <MyProjectList></MyProjectList>
 
-                {/* 加入專案 Tab */}
+                {/* 加入計畫 Tab */}
               </Tab>
-              <Tab key="join" title={<h3>加入專案</h3>}>
+              <Tab key="join" title={<h3>加入計畫</h3>}>
                 <Divider className="my-4 w-full" />
                 <JoinProjectList></JoinProjectList>
               </Tab>
