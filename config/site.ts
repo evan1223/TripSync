@@ -1,7 +1,7 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "TripSync 旅伴媒合平台",
+  name: "chicTrip 旅伴媒合平台",
   description: "一起找到對的人，做對的事",
   // 導覽頁
   navItems: [

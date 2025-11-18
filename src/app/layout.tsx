@@ -45,7 +45,7 @@ export default function RootLayout({
             <Navbar />
             <main className="flex-grow">{children}</main>
             <footer className="w-full flex items-center justify-center py-5 mt-auto">
-              <span className="text-gray-2">Copyright © TripSync</span>
+              <span className="text-gray-2">Copyright © chicTrip</span>
             </footer>
           </div>
         </Providers>

@@ -7,9 +7,9 @@ type Params = {
   };
 };
 
-export async function GET(request: NextRequest, { params } : { params: Promise<{ projectId: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
-  
+
   if (!projectId) {
     return NextResponse.json({ success: false, error: "缺少 projectId" }, { status: 400 });
   }
@@ -61,10 +61,22 @@ export async function GET(request: NextRequest, { params } : { params: Promise<{
   }
 }
 
+function isDefaultProjectImage(decodedPath: string): boolean {
+  // 依照實際儲存路徑調整
+  const DEFAULT_PATHS = [
+    "projects/projects%2Fproject_defualt.png", // 目前 decode 出來的樣子
+    "projects/project_defualt.png",           // 如果之後你換路徑可以一起放這裡
+  ];
+
+  return DEFAULT_PATHS.includes(decodedPath);
+}
+
+
+
 // 刪除專案資料
 export async function DELETE(
   req: NextRequest,
-  { params } : { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
 
@@ -91,18 +103,23 @@ export async function DELETE(
     const deleteApplicationPromises = appQuerySnapshot.docs.map((doc) => doc.ref.delete());
     await Promise.all(deleteApplicationPromises);
 
-    // 刪除 Firebase Storage 中的圖片
-    if (imageUrl) {
-      const bucket = STORAGE.bucket();
-      const match = imageUrl.match(/\/o\/(.*?)\?alt=/);
-      if (match && match[1]) {
-        const decodedPath = decodeURIComponent(match[1]);
-        await bucket.file(decodedPath).delete();
-        console.log(`成功刪除圖片: ${decodedPath}`);
-      } else {
-        console.warn('無法解析圖片路徑，未執行刪除圖片');
-      }
-    }
+    // 刪除 Firebase Storage 中的圖片（非預設圖才刪）
+    // if (imageUrl) {
+    //   const bucket = STORAGE.bucket();
+    //   const match = imageUrl.match(/\/o\/(.*?)\?alt=/);
+    //   if (match && match[1]) {
+    //     const decodedPath = decodeURIComponent(match[1]); // e.g. "projects/projects%2Fproject_defualt.png"
+
+    //     if (isDefaultProjectImage(decodedPath)) {
+    //       console.log(`預設圖片，不執行刪除: ${decodedPath}`);
+    //     } else {
+    //       await bucket.file(decodedPath).delete();
+    //       console.log(`成功刪除圖片: ${decodedPath}`);
+    //     }
+    //   } else {
+    //     console.warn("無法解析圖片路徑，未執行刪除圖片");
+    //   }
+    // }
 
     // 刪除專案本身
     await projectDocRef.delete();

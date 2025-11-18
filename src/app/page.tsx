@@ -16,7 +16,7 @@ export default function Home() {
           ，做對的事。
         </div> */}
         <div className="text-6xl font-extrabold text-primary-blue1 mx-10 text-center">
-          TripSync
+          chicTrip
         </div>
         <div className="text-3xl font-bold text-primary-blue1 mx-10 text-center mt-4">
           Your journey, <span className="text-primary-blue2">matched smartly.</span>

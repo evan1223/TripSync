@@ -18,7 +18,7 @@ interface DropdownSelectorProps {
 }
 
 export default function DropdownSelector({ label, name, value, onChange }: DropdownSelectorProps) {
-    const selectedKeys = useMemo(() => new Set([value || "請選擇專案類型"]), [value]);
+    const selectedKeys = useMemo(() => new Set([value || "請選擇計畫類型"]), [value]);
 
     return (
         <div className="mb-6">
@@ -26,7 +26,7 @@ export default function DropdownSelector({ label, name, value, onChange }: Dropd
             <Dropdown>
                 <DropdownTrigger>
                     <Button className="w-[190px] md:w-[300px] lg:w-[400px] text-md" variant="bordered">
-                        {value || "請選擇專案類型"}
+                        {value || "請選擇計畫類型"}
                     </Button>
                 </DropdownTrigger>
                 <DropdownMenu

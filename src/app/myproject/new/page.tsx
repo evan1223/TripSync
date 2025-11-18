@@ -1,4 +1,4 @@
-//發起專案
+//發起計畫
 "use client";
 
 import AlertMessage from "@/components/AlertMessage";
@@ -109,15 +109,28 @@ export default function AddProjects() {
   };
   // 預覽：show localStorage
   const handlePreview = () => {
+
+    if (form.projectTypeName.length > 10) {
+      setAlertMessage("計畫類別最多輸入10個字");
+      setShowAlert(true);
+      return;
+    }
+
+    if ((form.skillTypeNames[0] || "").length > 10) {
+      setAlertMessage("技能類型最多輸入10個字");
+      setShowAlert(true);
+      return;
+    }
+
     // 驗證
     if (!form.projectName) {
-      setAlertMessage("請填寫專案名稱");
+      setAlertMessage("請填寫計畫名稱");
       console.log("檢查");
       setShowAlert(true);
       return;
     }
     if (!form.projectDescription) {
-      setAlertMessage("請填寫專案說明");
+      setAlertMessage("請填寫計畫說明");
       setShowAlert(true);
       return;
     }
@@ -133,7 +146,7 @@ export default function AddProjects() {
       return;
     }
     if (!form.projectTypeName) {
-      setAlertMessage("請選擇專案類別");
+      setAlertMessage("請選擇計畫類別");
       setShowAlert(true);
       return;
     }
@@ -162,6 +175,11 @@ export default function AddProjects() {
     // 產生暫時 projectId（）
     const projectId = "newProject";
 
+    // 先把「旅行地點」依照 "/" 切成陣列
+    const locations = form.projectTypeName
+      .split("/")            // 用 "/" 分割
+      .map((loc) => loc.trim()) // 去掉前後空白
+      .filter((loc) => loc.length > 0); // 過濾掉空字串
     // 將 form(文字資料) 和 imageUrl(圖片資料) 存到 localStorage
     const previewData = {
       ...form,
@@ -170,6 +188,7 @@ export default function AddProjects() {
       projectImageUrl: imageUrl,
       userInfo,
       projectId,
+      locations, // ✅ 新增一個欄位，把分好的地點陣列丟進去
     };
 
     localStorage.setItem("projectEditPreview", JSON.stringify(previewData));
@@ -192,7 +211,7 @@ export default function AddProjects() {
       <div className="mt-16">
         <Sidebar />
       </div>
-      {/* 新增專案內容 */}
+      {/* 新增計畫內容 */}
       <section className="flex ml-5 sm:ml-0 pt-10 w-[70%] mr-16 min-w-[340px]">
         <div className="w-full relative bg-white rounded-2xl p-5  flex flex-col sm:w-[550px] md:w-[600px] lg:w-[900px]">
           <div className="flex items-center mt-5">
@@ -200,12 +219,12 @@ export default function AddProjects() {
               <BackIcon />
             </Link>
             <div className="text-primary-blue0 text-2xl font-bold ml-3">
-              新增專案
+              新增旅遊計畫
             </div>
           </div>
 
           <form>
-            {/* 新增專案 */}
+            {/* 新增計畫 */}
             <div className="flex flex-col lg:flex-row justify-center">
               <div className="flex flex-col mt-8 items-center p-3">
                 <div
@@ -281,15 +300,15 @@ export default function AddProjects() {
               <div className="mt-10 pl-0 sm:pl-10 lg:pl-4">
                 <TextInput
                   name="projectName"
-                  label="專案名稱"
-                  placeholder="請輸入專案名稱，最多輸入10個字"
+                  label="計畫名稱"
+                  placeholder="請輸入計畫名稱，最多輸入10個字"
                   value={form.projectName}
                   onChange={(e) => setForm({ ...form, projectName: e.target.value })}
                 />
                 <Textarea
                   name="projectDescription"
-                  label="專案說明"
-                  placeholder="請說明專案內容，最多100個字"
+                  label="計畫說明"
+                  placeholder="請說明計畫內容，最多100個字"
                   value={form.projectDescription}
                   onChange={(e) =>
                     setForm({ ...form, projectDescription: e.target.value })
@@ -309,25 +328,33 @@ export default function AddProjects() {
                     onChange={(date) => setForm({ ...form, endDate: date })}
                   ></DatePick>
                 </div>
-                <DropdownSelector
+                <TextInput
                   name="projectTypeName"
-                  label="專案類別"
-                  value={form.projectTypeName}
-                  onChange={(val) => setForm({ ...form, projectTypeName: val })}
-                ></DropdownSelector>
+                  label="旅行地點"
+                  placeholder='請輸入旅行地點，地點間請用 "/" 分隔'
+                value={form.projectTypeName}
+                onChange={(e) => {
+                  const value = e.target.value.slice(0, 10); // 限制 10 個字
+                  setForm({ ...form, projectTypeName: value });
+                }}
+                />
                 <NumberInput
                   name="peopleRequired"
-                  label="人數需求"
+                  label="旅伴人數"
                   value={form.peopleRequired}
                   onChange={(e) =>
                     setForm({ ...form, peopleRequired: e.target.value })
                   }
                 ></NumberInput>
                 {/* 技能類型 */}
-                <DropdownSelectorGroup
-                  value={form.skillTypeNames}
-                  onChange={(arr) => {
-                    setForm({ ...form, skillTypeNames: arr });
+                <TextInput
+                  name="skillTypeNames"
+                  label="技能需求"
+                  placeholder="請輸入技能需求，最多輸入10個字"
+                  value={form.skillTypeNames[0] || ""}
+                  onChange={(e) => {
+                    const value = e.target.value.slice(0, 10); // 限制 10 個字
+                    setForm({ ...form, skillTypeNames: [value] });
                   }}
                 />
                 <Textarea

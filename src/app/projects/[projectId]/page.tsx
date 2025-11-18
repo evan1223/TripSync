@@ -1,6 +1,3 @@
-// 此頁為上線專案頁
-// 後端需求：每個專案有自己獨立的頁碼 P001為專案編號，或是有其他編號方式
-
 "use client";
 import AlertMessage from "@/components/AlertMessage";
 import Info from "@/components/AddProjectInfo/Info";
@@ -17,7 +14,8 @@ interface ProjectData {
   projectDescription: string;
   startDate: any;
   endDate: any;
-  projectTypeName: string;
+  projectTypeName: string;     // 原始字串，例如 "台灣/新竹"
+  locations?: string[];        // 🔹 新增：後端存的旅行地點陣列
   skillTypeNames: string[];
   skillDescription: string;
   peopleRequired: number | string;
@@ -25,6 +23,7 @@ interface ProjectData {
   ownerName?: string;
   ownerEmail?: string;
   ownerId?: string;
+  status?: string;
 }
 
 // 日期格式化函數
@@ -56,7 +55,7 @@ export default function ProjectDetailPage() {
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isClosed, setIsClosed] = useState(false); 
+  const [isClosed, setIsClosed] = useState(false);
 
   const [showAlert, setShowAlert] = useState(false);
   const [needLoginAlert, setNeedLoginAlert] = useState(false);
@@ -65,17 +64,17 @@ export default function ProjectDetailPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const router = useRouter();
-  
+
   const handleJoinClick = async () => {
     try {
       const res = await fetch("/api/session", {
         method: "GET",
       });
-  
+
       if (!res.ok) {
         setNeedLoginAlert(true);
-        //可加入判斷：還有可能會因為沒有權限(發起人或已加入等等)
-      } else{
+        // 可加入判斷：還有可能會因為沒有權限(發起人或已加入等等)
+      } else {
         setShowAlert(true);
       }
     } catch (err) {
@@ -86,28 +85,28 @@ export default function ProjectDetailPage() {
   const handleCancel = () => {
     setShowAlert(false);
   };
-  
+
   const handelConfirm = async () => {
     setShowAlert(false);
-    
+
     try {
       const res = await fetch(`/api/projects/${projectId}/join`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${await auth.currentUser?.getIdToken()}`
-        }
+          Authorization: `Bearer ${await auth.currentUser?.getIdToken()}`,
+        },
       });
 
       const data = await res.json();
-      
+
       if (data.success) {
         setJoin(true);
       } else {
-        setError(data.error || '加入專案失敗');
+        setError(data.error || "加入計畫失敗");
       }
     } catch (err) {
-      console.error('加入專案失敗：', err);
-      setError('加入專案時發生錯誤');
+      console.error("加入計畫失敗：", err);
+      setError("加入計畫時發生錯誤");
     }
   };
 
@@ -124,19 +123,40 @@ export default function ProjectDetailPage() {
         })
         .then((data) => {
           if (data.success && data.data) {
-            setProjectData(data.data);
+            const d = data.data as ProjectData;
+
+            // 🔹 如果後端有 locations 就直接用；沒有就從 projectTypeName 切
+            const locations =
+              Array.isArray((data.data as any).locations) &&
+              (data.data as any).locations.length > 0
+                ? (data.data as any).locations
+                : (d.projectTypeName || "")
+                    .split("/")
+                    .map((loc) => loc.trim())
+                    .filter((loc) => loc.length > 0);
+
+            const merged: ProjectData = {
+              ...d,
+              locations,
+            };
+
+            setProjectData(merged);
+
             // 判斷是否結案
-            if (data.data.status === "closed" || data.data.status === "close") {
+            if (
+              (data.data as any).status === "closed" ||
+              (data.data as any).status === "close"
+            ) {
               setIsClosed(true);
             } else {
               setIsClosed(false);
             }
           } else {
-            throw new Error(data.error || "無法獲取專案資料");
+            throw new Error(data.error || "無法獲取計畫資料");
           }
         })
         .catch((err) => {
-          console.error("獲取專案資料失敗:", err);
+          console.error("獲取計畫資料失敗:", err);
           setError(err.message);
         })
         .finally(() => {
@@ -145,9 +165,9 @@ export default function ProjectDetailPage() {
     }
 
     // 取得目前登入者 id
-    fetch('/api/session')
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/session")
+      .then((res) => res.json())
+      .then((data) => {
         if (data && (data.uid || (data.user && data.user.uid))) {
           setCurrentUserId(data.uid || data.user.uid);
         }
@@ -155,14 +175,16 @@ export default function ProjectDetailPage() {
       .catch(() => setCurrentUserId(null));
   }, [projectId]);
 
-  // 新增：檢查是否已申請過該專案
+  // 新增：檢查是否已申請過該計畫
   useEffect(() => {
     if (projectId && currentUserId) {
       fetch(`/api/projects/${projectId}/applications`)
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.success && Array.isArray(data.data)) {
-            const hasApplied = data.data.some((app: any) => app.userId === currentUserId);
+            const hasApplied = data.data.some(
+              (app: any) => app.userId === currentUserId
+            );
             if (hasApplied) setJoin(true);
           }
         })
@@ -170,11 +192,11 @@ export default function ProjectDetailPage() {
     }
   }, [projectId, currentUserId]);
 
-  // 後端需求：使用者加入媒合，需加入媒合紀錄
-
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">載入中...</div>
+      <div className="flex justify-center items-center h-screen">
+        載入中...
+      </div>
     );
   }
 
@@ -189,11 +211,11 @@ export default function ProjectDetailPage() {
   if (!projectData) {
     return (
       <div className="flex justify-center items-center h-screen">
-        找不到專案資料。
+        找不到計畫資料。
       </div>
     );
   }
-  
+
   return (
     <div className="h-full w-full flex bg-gray-50 text-gray-800 justify-center">
       <section className="flex  sm:ml-0 pt-10 w-[80%]  min-w-[380px] justify-center">
@@ -212,7 +234,7 @@ export default function ProjectDetailPage() {
             </div>
           )}
           {needLoginAlert && (
-          <div className="absolute z-50 inset-0 flex justify-center items-center">
+            <div className="absolute z-50 inset-0 flex justify-center items-center">
               <AlertMessage
                 onCancel={() => setNeedLoginAlert(false)}
                 onConfirm={() => {
@@ -236,68 +258,79 @@ export default function ProjectDetailPage() {
                   }
                   width={300}
                   height={200}
-                  alt={projectData.projectName || "專案圖片"}
+                  alt={projectData.projectName || "計畫圖片"}
                   className="absolute top-0 left-0 w-full h-full rounded-2xl object-cover"
                   unoptimized
                 />
               </div>
-              {/* 只有非專案擁有者才顯示加入媒合按鈕，且專案未結案才可按 */}
-              {currentUserId && projectData.ownerId === currentUserId ? null : (
-                join ? (
-                  <Button
-                    isDisabled
-                    className="bg-primary-blue2/20 text-white text-lg mt-8"
-                    startContent={<JoinIcon />}
-                  >
-                    已加入媒合
-                  </Button>
-                ) : (
-                  <Button
-                    onPress={handleJoinClick}
-                    className="bg-primary-blue2 text-white text-lg mt-8"
-                    startContent={<JoinIcon />}
-                    isDisabled={isClosed}
-                  >
-                    加入媒合
-                  </Button>
-                )
+              {/* 只有非計畫擁有者才顯示加入媒合按鈕，且計畫未結案才可按 */}
+              {currentUserId && projectData.ownerId === currentUserId ? null : join ? (
+                <Button
+                  isDisabled
+                  className="bg-primary-blue2/20 text-white text-lg mt-8"
+                  startContent={<JoinIcon />}
+                >
+                  已加入媒合
+                </Button>
+              ) : (
+                <Button
+                  onPress={handleJoinClick}
+                  className="bg-primary-blue2 text-white text-lg mt-8"
+                  startContent={<JoinIcon />}
+                  isDisabled={isClosed}
+                >
+                  加入媒合
+                </Button>
               )}
             </div>
             <div className="flex flex-col justify-start items-start sm:ml-20 mt-10 w-[400px]">
               <Info
-                label="專案名稱"
+                label="旅遊計畫"
                 content={projectData.projectName ?? ""}
               ></Info>
               <Info
-                label="專案說明"
+                label="計畫說明"
                 content={projectData.projectDescription ?? ""}
               ></Info>
               <Info
-                label="專案時間"
+                label="計畫時間"
                 content={
                   projectData.startDate && projectData.endDate
-                    ? `${formatDate(projectData.startDate)} - ${formatDate(projectData.endDate)}`
+                    ? `${formatDate(projectData.startDate)} - ${formatDate(
+                        projectData.endDate
+                      )}`
                     : "-"
                 }
               ></Info>
+
+              {/* 🔹 改成旅行地點，顯示多個 tag */}
               <Tag
-                label="專案類別"
+                label="旅行地點"
                 content={
-                  projectData.projectTypeName
-                    ? [projectData.projectTypeName]
+                  Array.isArray(projectData.locations)
+                    ? projectData.locations
+                    : projectData.projectTypeName
+                    ? projectData.projectTypeName
+                        .split("/")
+                        .map((loc) => loc.trim())
+                        .filter((loc) => loc.length > 0)
                     : []
                 }
               ></Tag>
+
+              {/* 🔹 改成技能需求 */}
               <Tag
-                label="技能類型"
+                label="技能需求"
                 content={
                   Array.isArray(projectData.skillTypeNames)
                     ? projectData.skillTypeNames
                     : []
                 }
               ></Tag>
+
+              {/* 🔹 改成技能描述 */}
               <Info
-                label="專案描述"
+                label="技能描述"
                 content={projectData.skillDescription ?? ""}
               ></Info>
               <Info
