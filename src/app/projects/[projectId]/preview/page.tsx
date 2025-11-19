@@ -398,19 +398,19 @@ export default function AddProjects() {
                             <Info label="人數需求" content={data?.peopleRequired != null ? String(data.peopleRequired) : ""}></Info>
                             {/* 預算細項預覽 */}
                             {/* ✅ 個人總預算 */}
-{Array.isArray(data?.budgetItems) && data.budgetItems.length > 0 && (
-  <Info
-    label="總預算"
-    content={
-      `${data.budgetItems
-        .reduce((sum: number, item: any) => {
-          const amount = Number(item.amount);
-          return sum + (isNaN(amount) ? 0 : amount);
-        }, 0)
-      }  元 /人`
-    }
-  />
-)}
+                            {Array.isArray(data?.budgetItems) && data.budgetItems.length > 0 && (
+                                <Info
+                                    label="總預算"
+                                    content={
+                                        `${data.budgetItems
+                                            .reduce((sum: number, item: any) => {
+                                                const amount = Number(item.amount);
+                                                return sum + (isNaN(amount) ? 0 : amount);
+                                            }, 0)
+                                        }  元 /人`
+                                    }
+                                />
+                            )}
                             <Info label="發起人" content={userInfo.name ?? ""}></Info>
                             <Info label="聯繫方式" content={userInfo.email ?? ""}></Info>
                         </div>

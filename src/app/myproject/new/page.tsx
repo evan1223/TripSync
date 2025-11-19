@@ -5,6 +5,7 @@ import AlertMessage from "@/components/AlertMessage";
 import Sidebar from "@/components/Sidebar";
 import TextInput from "@/components/AddProjectInfo/TextInput";
 import NumberInput from "@/components/AddProjectInfo/NumberInput";
+import BudgetNumberInput from "@/components/AddProjectInfo/BudgetNumberInput";
 import {
   BackIcon,
   PreviewIcon,
@@ -52,6 +53,7 @@ export default function AddProjects() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const [showAlert, setShowAlert] = useState(false);
+  const [redirectOnAlert, setRedirectOnAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [isLogIn, setIsLogIn] = useState<boolean | null>(null);
 
@@ -87,6 +89,7 @@ export default function AddProjects() {
 
         if (!sessionData.loggedIn) {
           setAlertMessage("請先登入");
+          setRedirectOnAlert(true);
           setShowAlert(true);
           return;
         }
@@ -106,6 +109,7 @@ export default function AddProjects() {
       } catch (err) {
         console.error("載入 session 時發生錯誤", err);
         setAlertMessage("載入登入狀態時發生錯誤");
+        setRedirectOnAlert(true);
         setShowAlert(true);
       }
     }
@@ -114,9 +118,12 @@ export default function AddProjects() {
   }, []);
 
   const handleConfirm = () => {
-    setShowAlert(false);
+  setShowAlert(false);
+
+  if (redirectOnAlert) {
     router.replace("/login");
-  };
+  }
+};
 
   // 預算細項：更新單一列
   const handleBudgetItemChange = (
@@ -147,7 +154,7 @@ export default function AddProjects() {
       return { ...prev, budgetItems: newItems };
     });
   };
-  
+
 
   // 預覽：show localStorage
   const handlePreview = () => {
@@ -179,12 +186,33 @@ export default function AddProjects() {
         return;
       }
 
-      // 只允許數字與小數點
-      if (!/^\d+(\.\d+)?$/.test(item.amount.trim())) {
-        setAlertMessage(`預算細項第 ${rowNumber} 列的預算金額必須為數字`);
+      // 預算金額格式檢查（正整數）
+      const rawAmount = item.amount.trim();
+
+      // 1) 格式必須全為數字
+      if (!/^\d+$/.test(rawAmount)) {
+        setAlertMessage(`預算細項第 ${rowNumber} 列的預算金額必須為正整數`);
         setShowAlert(true);
         return;
       }
+
+      // 2) 轉成數字後檢查範圍：1 ~ 999,999,999
+      const amountNum = Number(rawAmount);
+
+      // NaN / 非整數 / 小於等於 0
+      if (!Number.isFinite(amountNum) || !Number.isInteger(amountNum) || amountNum <= 0) {
+        setAlertMessage(`預算細項第 ${rowNumber} 列的預算金額必須大於 0 的整數`);
+        setShowAlert(true);
+        return;
+      }
+
+      // 超過上限
+      if (amountNum > 999_999_999) {
+        setAlertMessage(`預算細項第 ${rowNumber} 列的預算金額不可超過 999,999,999`);
+        setShowAlert(true);
+        return;
+      }
+
     }
 
     // 基本欄位驗證
@@ -383,34 +411,34 @@ export default function AddProjects() {
                   }
                 ></Textarea>
                 {/* 日期區：跟 TextInput 一樣一行，右邊 400px 裡再放兩個 DatePicker */}
-<div className="mb-6 flex items-center">
-  {/* 左邊 label，寬度跟其他欄位一樣 */}
-  <label className="text-lg w-[105px] font-medium mr-5">開始日期</label>
+                <div className="mb-6 flex items-center">
+                  {/* 左邊 label，寬度跟其他欄位一樣 */}
+                  <label className="text-lg w-[105px] font-medium mr-5">開始日期</label>
 
-  {/* 右邊整塊跟其他 input 一樣寬：200/300/400 */}
-  <div className="flex items-center gap-4 w-[200px] md:w-[300px] lg:w-[400px]">
-    {/* 起始日期 */}
-    <DatePick
-      name="startDate"
-      label=""               // 這裡 label 留空就好
-      value={form.startDate}
-      onChange={(date) => setForm({ ...form, startDate: date })}
-    />
+                  {/* 右邊整塊跟其他 input 一樣寬：200/300/400 */}
+                  <div className="flex items-center gap-4 w-[200px] md:w-[300px] lg:w-[400px]">
+                    {/* 起始日期 */}
+                    <DatePick
+                      name="startDate"
+                      label=""               // 這裡 label 留空就好
+                      value={form.startDate}
+                      onChange={(date) => setForm({ ...form, startDate: date })}
+                    />
 
-    {/* 中間的「結束日期」文字 */}
-    <span className="text-lg font-medium whitespace-nowrap">
-      結束日期
-    </span>
+                    {/* 中間的「結束日期」文字 */}
+                    <span className="text-lg font-medium whitespace-nowrap">
+                      結束日期
+                    </span>
 
-    {/* 結束日期 */}
-    <DatePick
-      name="endDate"
-      label=""               // 同樣 label 留空
-      value={form.endDate}
-      onChange={(date) => setForm({ ...form, endDate: date })}
-    />
-  </div>
-</div>
+                    {/* 結束日期 */}
+                    <DatePick
+                      name="endDate"
+                      label=""               // 同樣 label 留空
+                      value={form.endDate}
+                      onChange={(date) => setForm({ ...form, endDate: date })}
+                    />
+                  </div>
+                </div>
 
                 <TextInput
                   name="projectTypeName"
@@ -488,23 +516,20 @@ export default function AddProjects() {
 
                         {/* 下排：預算金額 */}
                         <div className="mt-3 flex-1 min-w-0">
-                          <NumberInput
+                          <BudgetNumberInput
                             name={`budgetAmount-${index}`}
                             label="預算金額（元）"
-                            placeholder="請輸入預算金額"
                             value={item.amount}
-                            onChange={(e) =>
-                              handleBudgetItemChange(index, "amount", e.target.value)
+                            onChange={(value) =>
+                              handleBudgetItemChange(index, "amount", value)
                             }
                           />
                         </div>
+
                       </div>
                     ))}
                   </div>
                 </div>
-
-
-
 
                 {/* 技能類型 */}
                 <TextInput
