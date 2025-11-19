@@ -1,4 +1,4 @@
-// 此頁預覽檢視專案資訊
+// 此頁預覽檢視計畫資訊
 "use client"
 import Info from "@/components/AddProjectInfo/Info";
 import Tag from "@/components/AddProjectInfo/Tag";
@@ -74,9 +74,9 @@ export default function AddProjects() {
                             .split("/")
                             .map((loc: string) => loc.trim())
                             .filter((loc: string) => loc.length > 0);
-                        const budgetItems = Array.isArray(parsedLocalStorageData.budgetItems)
-      ? parsedLocalStorageData.budgetItems
-      : [];
+                    const budgetItems = Array.isArray(parsedLocalStorageData.budgetItems)
+                        ? parsedLocalStorageData.budgetItems
+                        : [];
 
                     dataToSet = {
                         ...parsedLocalStorageData,
@@ -238,7 +238,7 @@ export default function AddProjects() {
 
     const handlePublish = async () => {
         if (!data) {
-            alert("專案資料尚未載入完成，請稍候。");
+            alert("計畫資料尚未載入完成，請稍候。");
             return;
         }
 
@@ -294,19 +294,19 @@ export default function AddProjects() {
                     .split("/")
                     .map((loc: string) => loc.trim())
                     .filter((loc: string) => loc.length > 0);
-            
+
             const filledBudgetItems = Array.isArray(previewData.budgetItems)
-  ? previewData.budgetItems
-      .filter(
-        (item: any) =>
-          item.label && String(item.label).trim() !== "" &&
-          item.amount && String(item.amount).trim() !== ""
-      )
-      .map((item: any) => ({
-        label: String(item.label).trim(),
-        amount: Number(item.amount), // 確保是 number
-      }))
-  : [];
+                ? previewData.budgetItems
+                    .filter(
+                        (item: any) =>
+                            item.label && String(item.label).trim() !== "" &&
+                            item.amount && String(item.amount).trim() !== ""
+                    )
+                    .map((item: any) => ({
+                        label: String(item.label).trim(),
+                        amount: Number(item.amount), // 確保是 number
+                    }))
+                : [];
             const finalDataToPublish = {
                 ...previewData,
                 locations,
@@ -321,7 +321,7 @@ export default function AddProjects() {
                 startsWithProjects: finalDataToPublish.projectImageUrl?.includes("/projects/") || "無圖片URL"
             });
 
-            // 呼叫API創建專案
+            // 呼叫API創建計畫
             console.log("[DEBUG] 發送請求到/api/projects/create");
             const res = await fetch("/api/projects/create", {
                 method: "POST",
@@ -357,11 +357,11 @@ export default function AddProjects() {
                 <Sidebar />
             </div >
 
-            {/* 新增專案內容 */}
+            {/* 新增計畫內容 */}
             <section className="flex ml-5 sm:ml-0 pt-10 w-[70%] mr-16 min-w-[340px]">
                 <div className="w-full relative bg-white rounded-2xl p-5  flex flex-col sm:w-[550px] md:w-[600px] lg:w-[900px]">
                     <div className="flex items-center m-5">
-                        <div className="text-primary-blue0 text-2xl font-bold ml-3">預覽專案</div>
+                        <div className="text-primary-blue0 text-2xl font-bold ml-3">預覽計畫</div>
                     </div>
                     <div className="flex flex-col lg:flex-row justify-center">
                         <div className="flex flex-col mt-10  items-center">
@@ -377,17 +377,17 @@ export default function AddProjects() {
                         </div>
                         <div className="flex flex-col justify-start items-start sm:ml-20 mt-10">
                             {/* 後端需要讀取發起人已輸入的資訊 */}
-                            <Info label="專案名稱" content={data?.projectName ?? ""}></Info>
-                            <Info label="專案說明" content={data?.projectDescription ?? ""}></Info>
-                            <Info label="專案時間" content={data?.startDate && data?.endDate ? `${formatDate(data.startDate)} - ${formatDate(data.endDate)}` : "-"} ></Info>
+                            <Info label="計畫名稱" content={data?.projectName ?? ""}></Info>
+                            <Info label="計畫說明" content={data?.projectDescription ?? ""}></Info>
+                            <Info label="計畫時間" content={data?.startDate && data?.endDate ? `${formatDate(data.startDate)} - ${formatDate(data.endDate)}` : "-"} ></Info>
                             <Tag
                                 label="旅行地點"
                                 content={
                                     Array.isArray(data?.locations)
                                         ? data.locations
                                         : data?.projectTypeName
-                                        ? [data.projectTypeName]
-                                        : []
+                                            ? [data.projectTypeName]
+                                            : []
                                 }
                             />
                             <Tag
@@ -397,19 +397,19 @@ export default function AddProjects() {
                             <Info label="技能描述" content={data?.skillDescription ?? ""}></Info>
                             <Info label="人數需求" content={data?.peopleRequired != null ? String(data.peopleRequired) : ""}></Info>
                             {/* 預算細項預覽 */}
+                            {/* ✅ 個人總預算 */}
 {Array.isArray(data?.budgetItems) && data.budgetItems.length > 0 && (
-  <div className="mt-4 w-full">
-    <div className="text-lg font-medium mb-2">個人預算細項</div>
-    <div className="flex flex-col gap-1">
-      {data.budgetItems.map(
-        (item: { label: string; amount: string | number }, idx: number) => (
-          <div key={idx} className="text-sm text-gray-700">
-            {item.label}：{item.amount} 元
-          </div>
-        )
-      )}
-    </div>
-  </div>
+  <Info
+    label="總預算"
+    content={
+      `${data.budgetItems
+        .reduce((sum: number, item: any) => {
+          const amount = Number(item.amount);
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0)
+      }  元 /人`
+    }
+  />
 )}
                             <Info label="發起人" content={userInfo.name ?? ""}></Info>
                             <Info label="聯繫方式" content={userInfo.email ?? ""}></Info>
