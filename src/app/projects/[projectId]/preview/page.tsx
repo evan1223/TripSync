@@ -74,12 +74,16 @@ export default function AddProjects() {
                             .split("/")
                             .map((loc: string) => loc.trim())
                             .filter((loc: string) => loc.length > 0);
+                        const budgetItems = Array.isArray(parsedLocalStorageData.budgetItems)
+      ? parsedLocalStorageData.budgetItems
+      : [];
 
                     dataToSet = {
                         ...parsedLocalStorageData,
                         projectTypeName: parsedLocalStorageData.projectTypeName,
                         skillTypeNames: parsedLocalStorageData.skillTypeNames,
-                        locations, // ✅ 存在 data 裡，給下面預覽用
+                        locations,
+                        budgetItems,
                     };
 
                     setUserInfo(parsedLocalStorageData.userInfo || { name: "", email: "" });
@@ -290,11 +294,24 @@ export default function AddProjects() {
                     .split("/")
                     .map((loc: string) => loc.trim())
                     .filter((loc: string) => loc.length > 0);
-
+            
+            const filledBudgetItems = Array.isArray(previewData.budgetItems)
+  ? previewData.budgetItems
+      .filter(
+        (item: any) =>
+          item.label && String(item.label).trim() !== "" &&
+          item.amount && String(item.amount).trim() !== ""
+      )
+      .map((item: any) => ({
+        label: String(item.label).trim(),
+        amount: Number(item.amount), // 確保是 number
+      }))
+  : [];
             const finalDataToPublish = {
                 ...previewData,
                 locations,
-                projectImageUrl: publishImageUrl
+                projectImageUrl: publishImageUrl,
+                budgetItems: filledBudgetItems,
             };
 
             console.log("[DEBUG] 最終使用的圖片URL:", publishImageUrl);
@@ -379,6 +396,21 @@ export default function AddProjects() {
                             />
                             <Info label="技能描述" content={data?.skillDescription ?? ""}></Info>
                             <Info label="人數需求" content={data?.peopleRequired != null ? String(data.peopleRequired) : ""}></Info>
+                            {/* 預算細項預覽 */}
+{Array.isArray(data?.budgetItems) && data.budgetItems.length > 0 && (
+  <div className="mt-4 w-full">
+    <div className="text-lg font-medium mb-2">個人預算細項</div>
+    <div className="flex flex-col gap-1">
+      {data.budgetItems.map(
+        (item: { label: string; amount: string | number }, idx: number) => (
+          <div key={idx} className="text-sm text-gray-700">
+            {item.label}：{item.amount} 元
+          </div>
+        )
+      )}
+    </div>
+  </div>
+)}
                             <Info label="發起人" content={userInfo.name ?? ""}></Info>
                             <Info label="聯繫方式" content={userInfo.email ?? ""}></Info>
                         </div>

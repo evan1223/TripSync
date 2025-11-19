@@ -28,6 +28,25 @@ export async function POST(req: NextRequest) {
     // 🔹 技能名稱陣列（前端用 TextInput 已經包成陣列了）
     const skillTypeNames: string[] = body.skillTypeNames || [];
 
+    // 🔹 預算細項：做一次安全處理
+    const rawBudgetItems = Array.isArray(body.budgetItems)
+      ? body.budgetItems
+      : [];
+
+    const budgetItems = rawBudgetItems
+      .filter((item: any) => {
+        const label = (item?.label ?? "").toString().trim();
+        const amount = (item?.amount ?? "").toString().trim();
+        return label !== "" && amount !== "";
+      })
+      .map((item: any) => ({
+        label: (item?.label ?? "").toString().trim(),
+        amount: Number(item?.amount ?? 0),
+      }));
+
+    // （如果之後想要存總預算，也可以在這裡算）
+    // const totalBudget = budgetItems.reduce((sum, i) => sum + (i.amount || 0), 0);
+
     // =========================================================
     // 1. 先檢查這個 user 是否已有同名專案 → 有的話更新
     // =========================================================
@@ -41,7 +60,6 @@ export async function POST(req: NextRequest) {
       const existingProject = existingProjectSnap.docs[0];
       const projectId = existingProject.id;
 
-      // ⬇️ 如果想在更新時也同步 locations / projectTypeName，可以一起更新
       await existingProject.ref.update({
         projectDescription: body.projectDescription,
         startDate: new Date(body.startDate),
@@ -52,6 +70,8 @@ export async function POST(req: NextRequest) {
         status: "open",
         projectTypeName: rawProjectTypeName,
         locations,
+        budgetItems,               // ✅ 更新預算細項
+        // totalBudget,            // 若有需要可以一起存
       });
 
       return NextResponse.json({
@@ -71,17 +91,14 @@ export async function POST(req: NextRequest) {
     for (const loc of locations) {
       if (!loc) continue;
 
-      // 先看有沒有同名的 projectType
       const typeSnap = await DATABASE.collection("projectTypes")
         .where("projectTypeName", "==", loc)
         .limit(1)
         .get();
 
       if (!typeSnap.empty) {
-        // 已存在 → 重用這個 id
         projectTypeIds.push(typeSnap.docs[0].id);
       } else {
-        // 不存在 → 新增一筆
         const ref = await DATABASE.collection("projectTypes").add({
           projectTypeName: loc,
         });
@@ -99,7 +116,7 @@ export async function POST(req: NextRequest) {
       skillTypeId.push(ref.id);
     }
 
-    // 2-3. 建立新專案
+    // 2-3. 建立新專案（✅ 把 budgetItems 一起存進去）
     const projectRef = await DATABASE.collection("projects").add({
       projectName,
       projectDescription: body.projectDescription,
@@ -108,16 +125,16 @@ export async function POST(req: NextRequest) {
       peopleRequired: Number(body.peopleRequired),
       skillTypeId,
       skillDescription: body.skillDescription,
-      // 保留舊欄位：原本整串字（例如 "台灣/新竹"）
       projectTypeName: rawProjectTypeName,
-      // 新欄位：拆開後的地點陣列
       locations,
-      // 若你還需要關聯到 projectTypes，可以存第一個或整個陣列
       projectTypeId: projectTypeIds[0] || null,
       projectTypeIds,
       projectImageUrl: body.projectImageUrl,
       ownerId: userId,
       status: "open",
+      budgetItems,                // ✅ 新增欄位：預算細項
+      // totalBudget,             // 若有需要可以一起存
+      createdAt: new Date(),
     });
 
     return NextResponse.json({
