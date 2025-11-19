@@ -53,6 +53,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         ownerEmail,
         projectTypeName,
         skillTypeNames,
+        budgetItems: projectData?.budgetItems || [],
       },
     });
   } catch (error) {
