@@ -147,6 +147,7 @@ export default function AddProjects() {
       return { ...prev, budgetItems: newItems };
     });
   };
+  
 
   // 預覽：show localStorage
   const handlePreview = () => {
@@ -246,6 +247,7 @@ export default function AddProjects() {
     // 將 form(文字資料) 和 imageUrl(圖片資料) 存到 localStorage
     const previewData = {
       ...form,
+      budgetItems: filledBudgetItems,
       startDate: form.startDate ? form.startDate.toString() : null,
       endDate: form.endDate ? form.endDate.toString() : null,
       projectImageUrl: imageUrl,
@@ -380,24 +382,36 @@ export default function AddProjects() {
                     setForm({ ...form, projectDescription: e.target.value })
                   }
                 ></Textarea>
-                <div className="flex flex-col lg:flex-row lg:justify-between">
-                  <DatePick
-                    name="startDate"
-                    label="開始日期"
-                    value={form.startDate}
-                    onChange={(date) =>
-                      setForm({ ...form, startDate: date })
-                    }
-                  ></DatePick>
-                  <DatePick
-                    name="endDate"
-                    label="結束日期"
-                    value={form.endDate}
-                    onChange={(date) =>
-                      setForm({ ...form, endDate: date })
-                    }
-                  ></DatePick>
-                </div>
+                {/* 日期區：跟 TextInput 一樣一行，右邊 400px 裡再放兩個 DatePicker */}
+<div className="mb-6 flex items-center">
+  {/* 左邊 label，寬度跟其他欄位一樣 */}
+  <label className="text-lg w-[105px] font-medium mr-5">開始日期</label>
+
+  {/* 右邊整塊跟其他 input 一樣寬：200/300/400 */}
+  <div className="flex items-center gap-4 w-[200px] md:w-[300px] lg:w-[400px]">
+    {/* 起始日期 */}
+    <DatePick
+      name="startDate"
+      label=""               // 這裡 label 留空就好
+      value={form.startDate}
+      onChange={(date) => setForm({ ...form, startDate: date })}
+    />
+
+    {/* 中間的「結束日期」文字 */}
+    <span className="text-lg font-medium whitespace-nowrap">
+      結束日期
+    </span>
+
+    {/* 結束日期 */}
+    <DatePick
+      name="endDate"
+      label=""               // 同樣 label 留空
+      value={form.endDate}
+      onChange={(date) => setForm({ ...form, endDate: date })}
+    />
+  </div>
+</div>
+
                 <TextInput
                   name="projectTypeName"
                   label="旅行地點"
