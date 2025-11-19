@@ -31,6 +31,11 @@ import {
 } from "firebase/storage";
 import firebaseApp from "@/src/database/firebaseClient";
 
+type BudgetItem = {
+  label: string;   // 預算項目名稱，例如：機票、住宿
+  amount: string;  // 預算金額，先用字串記
+};
+
 type FormState = {
   projectName: string;
   projectDescription: string;
@@ -40,6 +45,7 @@ type FormState = {
   peopleRequired: string;
   skillDescription: string;
   skillTypeNames: string[];
+  budgetItems: BudgetItem[];   // ⬅ 新增預算細項
 };
 
 export default function AddProjects() {
@@ -51,6 +57,7 @@ export default function AddProjects() {
 
   // 圖片
   const [imageUrl, setImageUrl] = useState<string>("");
+
   // project
   const [form, setForm] = useState<FormState>({
     projectName: "",
@@ -61,12 +68,17 @@ export default function AddProjects() {
     peopleRequired: "",
     skillDescription: "",
     skillTypeNames: [""],
+    budgetItems: [
+      { label: "", amount: "" }, // 預設一列空的預算項目
+    ],
   });
+
   // session
   const [userInfo, setUserInfo] = useState({
     name: "",
     email: "",
   });
+
   useEffect(() => {
     async function loadSession() {
       try {
@@ -91,7 +103,6 @@ export default function AddProjects() {
         // ✔ 拿回臨時圖片
         const tempUrl = localStorage.getItem("tempUploadedImageUrl");
         if (tempUrl) setImageUrl(tempUrl);
-
       } catch (err) {
         console.error("載入 session 時發生錯誤", err);
         setAlertMessage("載入登入狀態時發生錯誤");
@@ -102,14 +113,44 @@ export default function AddProjects() {
     loadSession();
   }, []);
 
-
   const handleConfirm = () => {
     setShowAlert(false);
     router.replace("/login");
   };
+
+  // 預算細項：更新單一列
+  const handleBudgetItemChange = (
+    index: number,
+    field: "label" | "amount",
+    value: string
+  ) => {
+    setForm((prev) => {
+      const newItems = [...prev.budgetItems];
+      newItems[index] = { ...newItems[index], [field]: value };
+      return { ...prev, budgetItems: newItems };
+    });
+  };
+
+  // 預算細項：新增一列
+  const handleAddBudgetItem = () => {
+    setForm((prev) => ({
+      ...prev,
+      budgetItems: [...prev.budgetItems, { label: "", amount: "" }],
+    }));
+  };
+
+  // 預算細項：刪除一列（至少保留一列）
+  const handleRemoveBudgetItem = (index: number) => {
+    setForm((prev) => {
+      if (prev.budgetItems.length === 1) return prev;
+      const newItems = prev.budgetItems.filter((_, i) => i !== index);
+      return { ...prev, budgetItems: newItems };
+    });
+  };
+
   // 預覽：show localStorage
   const handlePreview = () => {
-
+    // 長度限制檢查
     if (form.projectTypeName.length > 10) {
       setAlertMessage("計畫類別最多輸入10個字");
       setShowAlert(true);
@@ -122,10 +163,32 @@ export default function AddProjects() {
       return;
     }
 
-    // 驗證
+    // 預算細項檢查
+    const filledBudgetItems = form.budgetItems.filter(
+      (item) => item.label.trim() !== "" || item.amount.trim() !== ""
+    );
+
+    for (let i = 0; i < filledBudgetItems.length; i++) {
+      const item = filledBudgetItems[i];
+      const rowNumber = i + 1;
+
+      if (item.label.trim() === "" || item.amount.trim() === "") {
+        setAlertMessage(`預算細項第 ${rowNumber} 列資料不完整`);
+        setShowAlert(true);
+        return;
+      }
+
+      // 只允許數字與小數點
+      if (!/^\d+(\.\d+)?$/.test(item.amount.trim())) {
+        setAlertMessage(`預算細項第 ${rowNumber} 列的預算金額必須為數字`);
+        setShowAlert(true);
+        return;
+      }
+    }
+
+    // 基本欄位驗證
     if (!form.projectName) {
       setAlertMessage("請填寫計畫名稱");
-      console.log("檢查");
       setShowAlert(true);
       return;
     }
@@ -140,7 +203,6 @@ export default function AddProjects() {
       return;
     }
     if (!form.endDate) {
-      // alert("請填寫結束日期");
       setAlertMessage("請填寫結束日期");
       setShowAlert(true);
       return;
@@ -172,14 +234,15 @@ export default function AddProjects() {
       return;
     }
 
-    // 產生暫時 projectId（）
+    // 產生暫時 projectId
     const projectId = "newProject";
 
     // 先把「旅行地點」依照 "/" 切成陣列
     const locations = form.projectTypeName
-      .split("/")            // 用 "/" 分割
+      .split("/") // 用 "/" 分割
       .map((loc) => loc.trim()) // 去掉前後空白
       .filter((loc) => loc.length > 0); // 過濾掉空字串
+
     // 將 form(文字資料) 和 imageUrl(圖片資料) 存到 localStorage
     const previewData = {
       ...form,
@@ -188,7 +251,7 @@ export default function AddProjects() {
       projectImageUrl: imageUrl,
       userInfo,
       projectId,
-      locations, // ✅ 新增一個欄位，把分好的地點陣列丟進去
+      locations, // 把分好的地點陣列丟進去
     };
 
     localStorage.setItem("projectEditPreview", JSON.stringify(previewData));
@@ -204,9 +267,10 @@ export default function AddProjects() {
             onConfirm={handleConfirm}
             title={alertMessage}
             action="確定"
-            confirmIcon={<CheckIcon />} />
-        </div>)
-      }
+            confirmIcon={<CheckIcon />}
+          />
+        </div>
+      )}
       {/* Sidebar */}
       <div className="mt-16">
         <Sidebar />
@@ -233,7 +297,7 @@ export default function AddProjects() {
                   className="relative overflow-hidden cursor-pointer bg-primary-blue5 w-[300px] h-[200px] rounded-2xl flex justify-center items-center flex-col text-gray-2"
                   onClick={() => setIsModalOpen(true)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if (e.key === "Enter" || e.key === " ") {
                       setIsModalOpen(true);
                     }
                   }}
@@ -303,7 +367,9 @@ export default function AddProjects() {
                   label="計畫名稱"
                   placeholder="請輸入計畫名稱，最多輸入10個字"
                   value={form.projectName}
-                  onChange={(e) => setForm({ ...form, projectName: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, projectName: e.target.value })
+                  }
                 />
                 <Textarea
                   name="projectDescription"
@@ -314,29 +380,33 @@ export default function AddProjects() {
                     setForm({ ...form, projectDescription: e.target.value })
                   }
                 ></Textarea>
-                <div className="flex flex-col lg:flex-row">
+                <div className="flex flex-col lg:flex-row lg:justify-between">
                   <DatePick
                     name="startDate"
                     label="開始日期"
                     value={form.startDate}
-                    onChange={(date) => setForm({ ...form, startDate: date })}
+                    onChange={(date) =>
+                      setForm({ ...form, startDate: date })
+                    }
                   ></DatePick>
                   <DatePick
                     name="endDate"
                     label="結束日期"
                     value={form.endDate}
-                    onChange={(date) => setForm({ ...form, endDate: date })}
+                    onChange={(date) =>
+                      setForm({ ...form, endDate: date })
+                    }
                   ></DatePick>
                 </div>
                 <TextInput
                   name="projectTypeName"
                   label="旅行地點"
                   placeholder='請輸入旅行地點，地點間請用 "/" 分隔'
-                value={form.projectTypeName}
-                onChange={(e) => {
-                  const value = e.target.value.slice(0, 10); // 限制 10 個字
-                  setForm({ ...form, projectTypeName: value });
-                }}
+                  value={form.projectTypeName}
+                  onChange={(e) => {
+                    const value = e.target.value.slice(0, 10); // 限制 10 個字
+                    setForm({ ...form, projectTypeName: value });
+                  }}
                 />
                 <NumberInput
                   name="peopleRequired"
@@ -346,6 +416,82 @@ export default function AddProjects() {
                     setForm({ ...form, peopleRequired: e.target.value })
                   }
                 ></NumberInput>
+
+                {/* 個人預算細項 */}
+                <div className="mt-6 mb-8">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <div className="text-lg font-medium">個人預算細項</div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        可依照需要新增多筆，例如：住宿、交通、餐飲⋯⋯
+                      </div>
+                    </div>
+
+                    <Button
+                      type="button"
+                      className="bg-primary-blue5 text-primary-blue2 text-sm whitespace-nowrap"
+                      onPress={handleAddBudgetItem}
+                    >
+                      ＋ 新增預算項目
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4 mt-3">
+                    {form.budgetItems.map((item, index) => (
+                      <div
+                        key={index}
+                        className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-4"
+                      >
+                        {/* 上排：項目名稱 + 刪除按鈕 */}
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+
+                          {/* 項目名稱輸入框（填滿可用空間） */}
+                          <div className="flex-1 min-w-0">
+                            <TextInput
+                              name={`budgetLabel-${index}`}
+                              label="項目名稱"
+                              placeholder="例如：機票、住宿⋯⋯"
+                              value={item.label}
+                              onChange={(e) =>
+                                handleBudgetItemChange(index, "label", e.target.value)
+                              }
+                            />
+                          </div>
+
+                          {/* 刪除按鈕 */}
+                          <div className="sm:mt-6 self-end sm:self-auto">
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="bg-red-100 text-red-600"
+                              isDisabled={form.budgetItems.length === 1}
+                              onPress={() => handleRemoveBudgetItem(index)}
+                            >
+                              刪除
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* 下排：預算金額 */}
+                        <div className="mt-3 flex-1 min-w-0">
+                          <NumberInput
+                            name={`budgetAmount-${index}`}
+                            label="預算金額（元）"
+                            placeholder="請輸入預算金額"
+                            value={item.amount}
+                            onChange={(e) =>
+                              handleBudgetItemChange(index, "amount", e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+
+
+
                 {/* 技能類型 */}
                 <TextInput
                   name="skillTypeNames"
@@ -388,6 +534,7 @@ export default function AddProjects() {
                 </div>
               </div>
             </div>
+
             <div className="mt-10 flex justify-center">
               {/* 當user按下預覽時，將資料存 localStorage 並跳轉到 preview */}
               <Button
@@ -401,7 +548,7 @@ export default function AddProjects() {
             </div>
           </form>
         </div>
-      </section >
-    </div >
+      </section>
+    </div>
   );
 }
