@@ -44,7 +44,7 @@ export default function Sidebar() {
           </span>
         </Link>
 
-        {/* 我的專案 */}
+        {/* 我的計畫 */}
         <Link
           href="/myproject"
           className={`group justify-center  flex items-center px-2 py-2 rounded-lg font-bold space-x-2 cursor-pointer transition-colors ${
@@ -55,7 +55,7 @@ export default function Sidebar() {
         >
           <ProjectIcon />
           <span className="hidden md:inline group-hover:inline pr-2">
-            我的專案
+            我的計畫
           </span>
         </Link>
       </div>

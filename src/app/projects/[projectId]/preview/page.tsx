@@ -1,4 +1,4 @@
-// 此頁預覽檢視專案資訊
+// 此頁預覽檢視計畫資訊
 "use client"
 import Info from "@/components/AddProjectInfo/Info";
 import Tag from "@/components/AddProjectInfo/Tag";
@@ -45,53 +45,86 @@ export default function AddProjects() {
     const [data, setData] = useState<any>(null);
     const [imageUrl, setImageUrl] = useState<string>("");
     const [loading, setLoading] = useState(false);
-    const [isClosed, setIsClosed] = useState(false); 
-    const DEFAULT_PICTURE_URL = "https://firebasestorage.googleapis.com/v0/b/software-project-a060c.firebasestorage.app/o/projects%2Fproject_defualt.png?alt=media&token=8e36a8a8-d15f-4595-b785-25cfbaa70869";
+    const [isClosed, setIsClosed] = useState(false);
+    const DEFAULT_PICTURE_URL = "https://firebasestorage.googleapis.com/v0/b/saad-5ae18.firebasestorage.app/o/projects%2Fprojects%252Fproject_defualt.png?alt=media&token=79f1fcf5-b960-404e-8b03-dc5bf13e729c";
 
     useEffect(() => {
         const loadProjectData = async () => {
             let dataToSet: any = null;
             let imageUrlToSet = DEFAULT_PICTURE_URL;
 
-            // 從 localStorage 讀取專案資料
-            const previewStr = typeof window !== 'undefined' ? localStorage.getItem("projectEditPreview") : null;
+            const previewStr =
+                typeof window !== "undefined"
+                    ? localStorage.getItem("projectEditPreview")
+                    : null;
 
-            // 從 localStorage 讀取暫存圖片 URL (如果有的話)
-            const tempImageUrl = typeof window !== 'undefined' ? localStorage.getItem("tempUploadedImageUrl") : null;
+            const tempImageUrl =
+                typeof window !== "undefined"
+                    ? localStorage.getItem("tempUploadedImageUrl")
+                    : null;
 
             if (previewStr) {
                 try {
                     const parsedLocalStorageData = JSON.parse(previewStr);
+
+                    // 🔹 旅行地點陣列：優先使用 localStorage 的 locations，沒有就從字串 split
+                    const locations = Array.isArray(parsedLocalStorageData.locations)
+                        ? parsedLocalStorageData.locations
+                        : (parsedLocalStorageData.projectTypeName || "")
+                            .split("/")
+                            .map((loc: string) => loc.trim())
+                            .filter((loc: string) => loc.length > 0);
+                    const budgetItems = Array.isArray(parsedLocalStorageData.budgetItems)
+                        ? parsedLocalStorageData.budgetItems
+                        : [];
+
                     dataToSet = {
                         ...parsedLocalStorageData,
                         projectTypeName: parsedLocalStorageData.projectTypeName,
                         skillTypeNames: parsedLocalStorageData.skillTypeNames,
+                        locations,
+                        budgetItems,
                     };
+
                     setUserInfo(parsedLocalStorageData.userInfo || { name: "", email: "" });
 
-                    // 優先使用暫存在 Firebase Storage 中的圖片 URL
                     if (tempImageUrl) {
                         imageUrlToSet = tempImageUrl;
                     } else {
-                        imageUrlToSet = parsedLocalStorageData.projectImageUrl || DEFAULT_PICTURE_URL;
+                        imageUrlToSet =
+                            parsedLocalStorageData.projectImageUrl || DEFAULT_PICTURE_URL;
                     }
                 } catch (e) {
                     console.error("Error parsing localStorage data:", e);
                 }
             } else {
-                // 如果 localStorage 沒有，再 call API 
+                // 🔹 從 API 取資料時也處理 locations
                 try {
                     const res = await fetch(`/api/projects/${projectId}`);
                     const json = await res.json();
                     if (json.success && json.data) {
+                        const apiData = json.data;
+
+                        const locations = Array.isArray(apiData.locations)
+                            ? apiData.locations
+                            : (apiData.projectTypeName || "")
+                                .split("/")
+                                .map((loc: string) => loc.trim())
+                                .filter((loc: string) => loc.length > 0);
+
                         dataToSet = {
-                            ...json.data,
-                            projectTypeName: json.data.projectTypeName,
-                            skillTypeNames: json.data.skillTypeNames,
+                            ...apiData,
+                            projectTypeName: apiData.projectTypeName,
+                            skillTypeNames: apiData.skillTypeNames,
+                            locations,
                         };
-                        imageUrlToSet = json.data.projectImageUrl || DEFAULT_PICTURE_URL;
+
+                        imageUrlToSet = apiData.projectImageUrl || DEFAULT_PICTURE_URL;
                     } else {
-                        console.error("Failed to fetch project from API:", json.error || "Unknown API error");
+                        console.error(
+                            "Failed to fetch project from API:",
+                            json.error || "Unknown API error"
+                        );
                     }
                 } catch (fetchError) {
                     console.error("Error fetching project from API:", fetchError);
@@ -100,8 +133,8 @@ export default function AddProjects() {
 
             setData(dataToSet);
             setImageUrl(imageUrlToSet);
-            // 是否結案
-            if (dataToSet && (dataToSet.status === "closed")) {
+
+            if (dataToSet && dataToSet.status === "closed") {
                 setIsClosed(true);
             } else {
                 setIsClosed(false);
@@ -110,36 +143,37 @@ export default function AddProjects() {
 
         loadProjectData();
     }, [projectId]);
-/*
-    function getFirebaseImageUrl(url?: string) {
-        if (!url) return "/project/project-image.jpg";
 
-        // 處理Firebase Storage URL
-        if (url.includes("firebasestorage.googleapis.com")) {
-            if (url.includes("?alt=media")) return url;
-            if (url.includes("?")) return url + "&alt=media";
-            return url + "?alt=media";
-        }
-
-        if (url.startsWith("gs://")) {
-            return url;
-        }
-
-        if (url.startsWith("temp/") || url.startsWith("projects/")) {
-            return url;
-        }
-
-        if (url.includes("temp%2F") || url.includes("projects%2F")) {
-            try {
-                return decodeURIComponent(url);
-            } catch (e) {
-                console.warn("[WARNING] 解碼URL失敗:", e);
+    /*
+        function getFirebaseImageUrl(url?: string) {
+            if (!url) return "/project/project-image.jpg";
+    
+            // 處理Firebase Storage URL
+            if (url.includes("firebasestorage.googleapis.com")) {
+                if (url.includes("?alt=media")) return url;
+                if (url.includes("?")) return url + "&alt=media";
+                return url + "?alt=media";
+            }
+    
+            if (url.startsWith("gs://")) {
                 return url;
             }
+    
+            if (url.startsWith("temp/") || url.startsWith("projects/")) {
+                return url;
+            }
+    
+            if (url.includes("temp%2F") || url.includes("projects%2F")) {
+                try {
+                    return decodeURIComponent(url);
+                } catch (e) {
+                    console.warn("[WARNING] 解碼URL失敗:", e);
+                    return url;
+                }
+            }
+            return url;
         }
-        return url;
-    }
- */
+     */
     function formatDate(date: any): string {
         if (!date) return "";
         // Firestore Timestamp 格式
@@ -204,7 +238,7 @@ export default function AddProjects() {
 
     const handlePublish = async () => {
         if (!data) {
-            alert("專案資料尚未載入完成，請稍候。");
+            alert("計畫資料尚未載入完成，請稍候。");
             return;
         }
 
@@ -254,9 +288,30 @@ export default function AddProjects() {
 
             delete previewData.projectImageUrl;
 
+            const locations = Array.isArray(previewData.locations)
+                ? previewData.locations
+                : (previewData.projectTypeName || "")
+                    .split("/")
+                    .map((loc: string) => loc.trim())
+                    .filter((loc: string) => loc.length > 0);
+
+            const filledBudgetItems = Array.isArray(previewData.budgetItems)
+                ? previewData.budgetItems
+                    .filter(
+                        (item: any) =>
+                            item.label && String(item.label).trim() !== "" &&
+                            item.amount && String(item.amount).trim() !== ""
+                    )
+                    .map((item: any) => ({
+                        label: String(item.label).trim(),
+                        amount: Number(item.amount), // 確保是 number
+                    }))
+                : [];
             const finalDataToPublish = {
                 ...previewData,
-                projectImageUrl: publishImageUrl
+                locations,
+                projectImageUrl: publishImageUrl,
+                budgetItems: filledBudgetItems,
             };
 
             console.log("[DEBUG] 最終使用的圖片URL:", publishImageUrl);
@@ -266,7 +321,7 @@ export default function AddProjects() {
                 startsWithProjects: finalDataToPublish.projectImageUrl?.includes("/projects/") || "無圖片URL"
             });
 
-            // 呼叫API創建專案
+            // 呼叫API創建計畫
             console.log("[DEBUG] 發送請求到/api/projects/create");
             const res = await fetch("/api/projects/create", {
                 method: "POST",
@@ -302,11 +357,11 @@ export default function AddProjects() {
                 <Sidebar />
             </div >
 
-            {/* 新增專案內容 */}
+            {/* 新增計畫內容 */}
             <section className="flex ml-5 sm:ml-0 pt-10 w-[70%] mr-16 min-w-[340px]">
                 <div className="w-full relative bg-white rounded-2xl p-5  flex flex-col sm:w-[550px] md:w-[600px] lg:w-[900px]">
                     <div className="flex items-center m-5">
-                        <div className="text-primary-blue0 text-2xl font-bold ml-3">預覽專案</div>
+                        <div className="text-primary-blue0 text-2xl font-bold ml-3">預覽計畫</div>
                     </div>
                     <div className="flex flex-col lg:flex-row justify-center">
                         <div className="flex flex-col mt-10  items-center">
@@ -322,13 +377,40 @@ export default function AddProjects() {
                         </div>
                         <div className="flex flex-col justify-start items-start sm:ml-20 mt-10">
                             {/* 後端需要讀取發起人已輸入的資訊 */}
-                            <Info label="專案名稱" content={data?.projectName ?? ""}></Info>
-                            <Info label="專案說明" content={data?.projectDescription ?? ""}></Info>
-                            <Info label="專案時間" content={data?.startDate && data?.endDate ? `${formatDate(data.startDate)} - ${formatDate(data.endDate)}` : "-"} ></Info>
-                            <Tag label="專案類別" content={data?.projectTypeName ? [data.projectTypeName] : []}></Tag>
-                            <Tag label="技能類型" content={Array.isArray(data?.skillTypeNames) ? data.skillTypeNames : []}></Tag>
-                            <Info label="專案描述" content={data?.skillDescription ?? ""}></Info>
+                            <Info label="計畫名稱" content={data?.projectName ?? ""}></Info>
+                            <Info label="計畫說明" content={data?.projectDescription ?? ""}></Info>
+                            <Info label="計畫時間" content={data?.startDate && data?.endDate ? `${formatDate(data.startDate)} - ${formatDate(data.endDate)}` : "-"} ></Info>
+                            <Tag
+                                label="旅行地點"
+                                content={
+                                    Array.isArray(data?.locations)
+                                        ? data.locations
+                                        : data?.projectTypeName
+                                            ? [data.projectTypeName]
+                                            : []
+                                }
+                            />
+                            <Tag
+                                label="技能需求"
+                                content={Array.isArray(data?.skillTypeNames) ? data.skillTypeNames : []}
+                            />
+                            <Info label="技能描述" content={data?.skillDescription ?? ""}></Info>
                             <Info label="人數需求" content={data?.peopleRequired != null ? String(data.peopleRequired) : ""}></Info>
+                            {/* 預算細項預覽 */}
+                            {/* ✅ 個人總預算 */}
+                            {Array.isArray(data?.budgetItems) && data.budgetItems.length > 0 && (
+                                <Info
+                                    label="總預算"
+                                    content={
+                                        `${data.budgetItems
+                                            .reduce((sum: number, item: any) => {
+                                                const amount = Number(item.amount);
+                                                return sum + (isNaN(amount) ? 0 : amount);
+                                            }, 0)
+                                        }  元 /人`
+                                    }
+                                />
+                            )}
                             <Info label="發起人" content={userInfo.name ?? ""}></Info>
                             <Info label="聯繫方式" content={userInfo.email ?? ""}></Info>
                         </div>

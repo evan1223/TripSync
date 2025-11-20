@@ -48,10 +48,10 @@ export default function JoinProjectList() {
           <Loading />
         </div>
       ) : hasProjects ? (
-        //發起人加入的專案數量卡片
+        //發起人加入的計畫數量卡片
         <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-12 mt-4">
           {projects.map((project: any, index) => (
-            //Link 連結指向專案的呈現頁
+            //Link 連結指向計畫的呈現頁
             <Link href={`/projects/${project.id}`} key={project.id || index}>
               <JoinProjectCard
                 id={project.id}
@@ -64,9 +64,9 @@ export default function JoinProjectList() {
           ))}
         </div>
       ) : (
-        //尚未發起專案時顯示
+        //尚未發起計畫時顯示
         <div className="text-center text-gray-2 mt-48">
-          <h3>您目前未加入任何專案</h3>
+          <h3>您目前未加入任何計畫</h3>
         </div>
       )}
     </div>

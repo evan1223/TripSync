@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "缺少 uid" }, { status: 400 });
     }
 
-    const DEFAULT_PICTURE_URL = "https://firebasestorage.googleapis.com/v0/b/software-project-a060c.firebasestorage.app/o/avatars%2Favatar_default.png?alt=media&token=f98cf4fa-4bb9-4731-b1cb-88708e6561b3";
+    const DEFAULT_PICTURE_URL = "https://firebasestorage.googleapis.com/v0/b/saad-5ae18.firebasestorage.app/o/avatars%2Favatar_default.png?alt=media&token=bd7c3573-7223-4cda-b7be-a4d820e6987a";
 
     await DATABASE.collection("users").doc(uid).update({
       ...(nickname && { nickname }),
