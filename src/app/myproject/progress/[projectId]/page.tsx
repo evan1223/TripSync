@@ -44,7 +44,7 @@ export default function ProjectProgressPage() {
 
   useEffect(() => {
     if (!projectId) return;
-    // 取得專案資料
+    // 取得計畫資料
     fetch(`/api/projects/${projectId}`)
       .then(res => res.json())
       .then(data => {
@@ -101,7 +101,7 @@ export default function ProjectProgressPage() {
                 className="w-6 h-6 text-primary-blue0 cursor-pointer"
                 onClick={() => router.push('/myproject')}
               />
-              <div className="text-2xl font-bold text-primary-blue0 w-[100px]">專案進度</div>
+              <div className="text-2xl font-bold text-primary-blue0 w-[100px]">計畫進度</div>
             </div>
 
             {/* 右：按鈕們 */}
@@ -137,7 +137,7 @@ export default function ProjectProgressPage() {
                     const json = await res.json();
 
                     if (json.success) {
-                      //alert("專案已成功結案！"); 再確認要不要alert
+                      //alert("計畫已成功結案！"); 再確認要不要alert
                       setCompleted(true);
                       //router.push("/myproject"); 再確認要不要跳頁
                     } else {
@@ -154,7 +154,7 @@ export default function ProjectProgressPage() {
           </div>
           {/* 🔻 底下主要內容：橫排兩塊 */}
           <div className="flex flex-col lg:flex-row gap-10 w-full mt-10 ">
-            {/* 左邊：專案卡片 */}
+            {/* 左邊：計畫卡片 */}
             <div className="w-[35%] min-w-[260px] flex flex-col space-y-4">
               {project && (() => {
                 let dateRange = "";
