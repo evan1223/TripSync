@@ -41,7 +41,7 @@ describe('完整流程：註冊 → 登入 → 點擊專案卡片 → 媒合', (
 
     cy.url({ timeout: 10000 }).should('eq', 'http://localhost:3000/');
 
-    cy.contains('h3', 'FoodHero', { timeout: 10000 }).should('be.visible').click();
+    cy.contains('h3', 'test1121', { timeout: 10000 }).should('be.visible').click();
 
     cy.url({ timeout: 20000 }).should('include', '/projects/');
 

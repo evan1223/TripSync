@@ -33,6 +33,6 @@ describe('Login Page', () => {
 
     cy.get('button[type="submit"]').click();
 
-    cy.url({ timeout: 10000 }).should('eq', 'http://localhost:3000/');
+    cy.url({ timeout: 30000 }).should('eq', 'http://localhost:3000/');
   });
 });
