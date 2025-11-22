@@ -88,6 +88,10 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/tripsync:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/tripsync:${{ github.sha }}
+          build-args: |
+            FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      
+    
 
     # deploy:
     # needs: docker-build-and-push
