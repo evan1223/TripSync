@@ -31,3 +31,19 @@ RUN npm install
 RUN echo "NEXT_PUBLIC_FIREBASE_API_KEY length: " ${#NEXT_PUBLIC_FIREBASE_API_KEY}
 
 RUN npm run build
+
+
+# Step 2: Production image
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+
+ENV NODE_ENV=production
+
+EXPOSE 3000
+CMD ["npm", "run", "start"]
