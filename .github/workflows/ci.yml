@@ -61,13 +61,13 @@ jobs:
 
 
       # 7. Build Next.js (SSR build)
-      - name: Build
-        run: npm run build
-    # 2) Build & push Docker image to Docker Hub (only on main)
+      # - name: Build
+      #   run: npm run build
 
+  # 2) Build & push Docker image to Docker Hub (only on main)
   docker-build-and-push:
     needs: build-and-test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    #if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
