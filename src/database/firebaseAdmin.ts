@@ -1,20 +1,26 @@
-//firebaseAdmin.ts
-import { initializeApp, getApps, getApp, cert } from "firebase-admin/app"; // cert 是憑證物件
+import { initializeApp, getApps, getApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import serviceAccount from "./software-serviceAccountKey.json";
-import { getStorage } from 'firebase-admin/storage';
+import { getStorage } from "firebase-admin/storage";
+import type { ServiceAccount } from "firebase-admin";
 
+// Read service account from environment variable 
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  throw new Error(
+    "FIREBASE_SERVICE_ACCOUNT env var is not set. Please configure it in your environment."
+  );
+}
+
+const serviceAccount = JSON.parse(
+  process.env.FIREBASE_SERVICE_ACCOUNT
+) as ServiceAccount;
 
 // Initialize Firebase Admin SDK only once.
-// If the app is already initialized (e.g., in serverless environments like Next.js API routes),
-// reuse the existing app instance to avoid errors.
-
 const firebaseAdminApp =
   getApps().length === 0
     ? initializeApp({
-        credential: cert(serviceAccount as any),
-        storageBucket: 'software-project-a060c.firebasestorage.app',
+        credential: cert(serviceAccount),
+        storageBucket:"software-project-a060c.firebasestorage.app",
       })
     : getApp();
 
